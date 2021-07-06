@@ -406,7 +406,17 @@ final class SqlGeneratorCommand extends \Symfony\Component\Console\Command\Comma
     private function getBeans(string $destination) : array
     {
         $robotLoader = new \Nette\Loaders\RobotLoader();
-        $robotLoader->addDirectory($destination);
+
+        if ($this->isJson($destination)) {
+            $decoded = \json_decode($destination, true);
+
+            foreach ($decoded as $key => $path) {
+                $robotLoader->addDirectory($path);
+            }
+        } else {
+            $robotLoader->addDirectory($destination);
+        }
+
         $robotLoader->rebuild();
 
         $foundClasses = \array_keys($robotLoader->getIndexedClasses());
@@ -432,5 +442,11 @@ final class SqlGeneratorCommand extends \Symfony\Component\Console\Command\Comma
         }
 
         return $beans;
+    }
+    
+    private function isJson(string $string) {
+        \json_decode($string);
+
+        return \json_last_error() === JSON_ERROR_NONE;
     }
 }
